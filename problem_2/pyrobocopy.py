@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """ pyrobocopy.py -
 
     Version: 1.0
@@ -13,12 +15,19 @@
     'Robocopy' program.)
 
     Mod  Nov 11 Rewrote to use the filecmp module.
+
+    5/9/2021 Update:
+        This file has become a Frankestein to satisfy a need of this problem
 """
 
 import os, stat
 import time
 import shutil
 import filecmp
+import log
+from datetime import datetime
+from threading import Timer
+
 
 def usage():
     return """
@@ -105,7 +114,46 @@ class PyRobocopier:
             
         allargs.extend( args )
         self.__setargs( allargs )
-            
+    
+    def parse_args_2(self, arguments):
+        sync_interval_str = ''
+        logfile_path = ''
+
+        import getopt
+
+        try:
+            opts, args = getopt.getopt(arguments, ":h", ["original-folder-path=", "replica-folder-path=", "interval=", "logfile="])
+        except getopt.GetoptError:
+            print('python3 main.py  --original-folder-path <path> --replica-folder-path <path> --interval <sync interval> --logfile <logfile path>')
+            sys.exit(1)
+    
+        for opt, arg in opts:                
+            if opt == "-h":
+                print('python3 main.py  --original-folder-path <path> --replica-folder-path <path> --interval <number in minutes> --logfile <logfile path>')
+            elif opt == "--original-folder-path":
+                original_path = arg
+            elif opt == "--replica-folder-path":
+                replica_path = arg
+            elif opt == "--interval":
+                sync_interval_str = arg
+            elif opt == "--logfile":
+                logfile_path = arg
+        
+
+        if (original_path == '' or replica_path == '') or (sync_interval_str == '' or logfile_path == ''):
+            print("Wrong arguments were provided")
+            sys.exit(1)
+
+        try:
+            self.__interval = int(sync_interval_str)
+        except ValueError:
+            print("Invalid interval!")
+            sys.exit(1)
+
+        self.__dir1 = original_path
+        self.__dir2 = replica_path
+        self.__mainfunc = self.synchronize
+
     def __setargs(self, argslist):
         """ Sets internal variables using arguments """
         
@@ -486,16 +534,20 @@ class PyRobocopier:
             print(self.__numdeldfld, 'directories could not be purged.')
         if self.__numdelffld:
             print(self.__numdelffld, 'files could not be purged.')
+    
+    def sync_scheduler(self):
+        x = datetime.today()
+        y = x.replace(day=x.minute + self.__interval)
+        delta_t = (y-x).seconds
+        copier.do_work()
+        Timer(delta_t, self.sync_scheduler).start()
         
 if __name__=="__main__":
     import sys
 
-    if len(sys.argv)<2:
-        sys.exit( usage() % PyRobocopier.prog_name )
-
     copier = PyRobocopier()
-    copier.parse_args(sys.argv[1:])
-    copier.do_work()
+    copier.parse_args_2(sys.argv[1:])
+    copier.sync_scheduler()
 
     # print report at the end
     copier.report()

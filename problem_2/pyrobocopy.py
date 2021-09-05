@@ -95,8 +95,8 @@ class PyRobocopier:
 
         try:
             optlist, args = getopt.getopt( arguments, shortargs, longargs )
-        except getopt.GetoptError, e:
-            print e
+        except getopt.GetoptError as e:
+            print(e)
             return None
 
         allargs = []
@@ -150,11 +150,11 @@ class PyRobocopier:
         
         if not os.path.isdir(self.__dir2):
             if self.__maketarget:
-                print 'Creating directory', self.__dir2
+                print('Creating directory', self.__dir2)
                 try:
                     os.makedirs(self.__dir2)
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
                     return None
 
         # All right!
@@ -164,7 +164,7 @@ class PyRobocopier:
     def __dowork(self, dir1, dir2, copyfunc = None, updatefunc = None):
         """ Private attribute for doing work """
         
-        print 'Source directory: ', dir1, ':'
+        print('Source directory: ', dir1, ':')
 
         self.__numdirs += 1
         self.__dcmp = filecmp.dircmp(dir1, dir2)
@@ -173,26 +173,26 @@ class PyRobocopier:
         if self.__purge:
             for f2 in self.__dcmp.right_only:
                 fullf2 = os.path.join(dir2, f2)
-                print 'Deleting ',fullf2
+                print('Deleting ',fullf2)
                 try:
                     if os.path.isfile(fullf2):
                         
                         try:
                             os.remove(fullf2)
                             self.__numdelfiles += 1
-                        except OSError, e:
-                            print e
+                        except OSError as e:
+                            print(e)
                             self.__numdelffld += 1
                     elif os.path.isdir(fullf2):
                         try:
                             shutil.rmtree( fullf2, True )
                             self.__numdeldirs += 1
-                        except shutil.Error, e:
-                            print e
+                        except shutil.Error as e:
+                            print(e)
                             self.__numdeldfld += 1
                                 
-                except Exception, e: # of any use ?
-                    print e
+                except Exception as e: # of any use ?
+                    print(e)
                     continue
 
 
@@ -212,12 +212,12 @@ class PyRobocopier:
                 if self.__creatdirs:
                     try:
                         # Copy tree
-                        print 'Copying tree', fulld2
+                        print('Copying tree', fulld2)
                         shutil.copytree(fulld1, fulld2)
                         self.__numnewdirs += 1
-                        print 'Done.'
-                    except shutil.Error, e:
-                        print e
+                        print('Done.')
+                    except shutil.Error as e:
+                        print(e)
                         self.__numdirsfld += 1
                         
                         # jump to next file/dir in loop since this op failed
@@ -249,57 +249,57 @@ class PyRobocopier:
         # NOTE: dir1 is source & dir2 is target
         if self.__copyfiles:
 
-            print 'Copying file', filename, dir1, dir2
+            print('Copying file', filename, dir1, dir2)
             try:
                 if self.__copydirection== 0 or self.__copydirection == 2:  # source to target
                     
                     if not os.path.exists(dir2):
                         if self.__forcecopy:
-                            os.chmod(os.path.dirname(dir2), 0777)
+                            os.chmod(os.path.dirname(dir2), 0o777)
                         try:
                             os.makedirs(dir1)
-                        except OSError, e:
-                            print e
+                        except OSError as e:
+                            print(e)
                             self.__numdirsfld += 1
                         
                     if self.__forcecopy:
-                        os.chmod(dir2, 0777)
+                        os.chmod(dir2, 0o777)
 
                     sourcefile = os.path.join(dir1, filename)
                     try:
                         shutil.copy(sourcefile, dir2)
                         self.__numfiles += 1
-                    except (IOError, OSError), e:
-                        print e
+                    except (IOError, OSError) as e:
+                        print(e)
                         self.__numcopyfld += 1
                     
                 elif self.__copydirection==1 or self.__copydirection == 2: # target to source 
 
                     if not os.path.exists(dir1):
                         if self.__forcecopy:
-                            os.chmod(os.path.dirname(dir1), 0777)
+                            os.chmod(os.path.dirname(dir1), 0o777)
 
                         try:
                             os.makedirs(dir1)
-                        except OSError, e:
-                            print e
+                        except OSError as e:
+                            print(e)
                             self.__numdirsfld += 1                          
 
                     targetfile = os.path.abspath(os.path.join(dir1, filename))
                     if self.__forcecopy:
-                        os.chmod(dir1, 0777)
+                        os.chmod(dir1, 0o777)
 
                     sourcefile = os.path.join(dir2, filename)
                     
                     try:
                         shutil.copy(sourcefile, dir1)
                         self.__numfiles += 1
-                    except (IOError, OSError), e:
-                        print e
+                    except (IOError, OSError) as e:
+                        print(e)
                         self.__numcopyfld += 1
                     
-            except Exception, e:
-                print 'Error copying  file', filename, e
+            except Exception as e:
+                print('Error copying  file', filename, e)
 
     def __cmptimestamps(self, filest1, filest2):
         """ Compare time stamps of two files and return True
@@ -312,7 +312,7 @@ class PyRobocopier:
         """ Private function for updating a file based on
         last time stamp of modification """
 
-        print 'Updating file', filename
+        print('Updating file', filename)
         
         # NOTE: dir1 is source & dir2 is target        
         if self.__updatefiles:
@@ -336,22 +336,22 @@ class PyRobocopier:
                 # it so happens that a file's creation time is newer than it's
                 # modification time! (Seen this on windows)
                 if self.__cmptimestamps( st1, st2 ):
-                    print 'Updating file ', file2 # source to target
+                    print('Updating file ', file2) # source to target
                     try:
                         if self.__forcecopy:
-                            os.chmod(file2, 0666)
+                            os.chmod(file2, 0o666)
 
                         try:
                             shutil.copy(file1, file2)
                             self.__numupdates += 1
                             return 0
-                        except (IOError, OSError), e:
-                            print e
+                        except (IOError, OSError) as e:
+                            print(e)
                             self.__numupdsfld += 1
                             return -1
 
-                    except Exception, e:
-                        print e
+                    except Exception as e:
+                        print(e)
                         return -1
 
             elif self.__copydirection==1 or self.__copydirection == 2:
@@ -361,22 +361,22 @@ class PyRobocopier:
                 # it so happens that a file's creation time is newer than it's
                 # modification time! (Seen this on windows)
                 if self.__cmptimestamps( st2, st1 ):
-                    print 'Updating file ', file1 # target to source
+                    print('Updating file ', file1) # target to source
                     try:
                         if self.__forcecopy:
-                            os.chmod(file1, 0666)
+                            os.chmod(file1, 0o666)
 
                         try:
                             shutil.copy(file2, file1)
                             self.__numupdates += 1
                             return 0
-                        except (IOError, OSError), e:
-                            print e
+                        except (IOError, OSError) as e:
+                            print(e)
                             self.__numupdsfld += 1
                             return -1
                         
-                    except Exception, e:
-                        print e
+                    except Exception as e:
+                        print(e)
                         return -1
 
         return -1
@@ -397,22 +397,22 @@ class PyRobocopier:
         """ Private function which only does directory diff """
 
         if self.__dcmp.left_only:
-            print 'Only in', self.__dir1
+            print('Only in', self.__dir1)
             for x in self.__dcmp.left_only:
-                print '>>', x
+                print('>>', x)
 
         if self.__dcmp.right_only:
-            print 'Only in', self.__dir2
+            print('Only in', self.__dir2)
             for x in self.__dcmp.right_only:
-                print '<<', x
+                print('<<', x)
 
         if self.__dcmp.common:
-            print 'Common to', self.__dir1,' and ',self.__dir2
-            print
+            print('Common to', self.__dir1,' and ',self.__dir2)
+            print()
             for x in self.__dcmp.common:
-                print '--', x
+                print('--', x)
         else:
-            print 'No common files or sub-directories!'
+            print('No common files or sub-directories!')
 
     def synchronize(self):
         """ Synchronize will try to synchronize two directories w.r.t
@@ -427,7 +427,7 @@ class PyRobocopier:
         self.__creatdirs = True
         self.__copydirection = 0
 
-        print 'Synchronizing directory', self.__dir2, 'with', self.__dir1 ,'\n'
+        print('Synchronizing directory', self.__dir2, 'with', self.__dir1 ,'\n')
         self.__dirdiffcopyandupdate(self.__dir1, self.__dir2)
 
     def update(self):
@@ -441,7 +441,7 @@ class PyRobocopier:
         self.__purge = False
         self.__creatdirs = False
 
-        print 'Updating directory', self.__dir2, 'from', self.__dir1 , '\n'
+        print('Updating directory', self.__dir2, 'from', self.__dir1 , '\n')
         self.__dirdiffandupdate(self.__dir1, self.__dir2)
 
     def dirdiff(self):
@@ -454,7 +454,7 @@ class PyRobocopier:
         self.__creatdirs = False
         self.__updatefiles = False
         
-        print 'Difference of directory ', self.__dir2, 'from', self.__dir1 , '\n'
+        print('Difference of directory ', self.__dir2, 'from', self.__dir1 , '\n')
         self.__dirdiff()
         
     def report(self):
@@ -463,29 +463,29 @@ class PyRobocopier:
         # We need only the first 4 significant digits
         tt = (str(self.__endtime - self.__starttime))[:4]
         
-        print '\nPython robocopier finished in',tt, 'seconds.'
-        print self.__numdirs, 'directories parsed,',self.__numfiles, 'files copied.'
+        print('\nPython robocopier finished in',tt, 'seconds.')
+        print(self.__numdirs, 'directories parsed,',self.__numfiles, 'files copied.')
         if self.__numdelfiles:
-            print self.__numdelfiles, 'files were purged.'
+            print(self.__numdelfiles, 'files were purged.')
         if self.__numdeldirs:
-            print self.__numdeldirs, 'directories were purged.'
+            print(self.__numdeldirs, 'directories were purged.')
         if self.__numnewdirs:
-            print self.__numnewdirs, 'directories were created.'
+            print(self.__numnewdirs, 'directories were created.')
         if self.__numupdates:
-            print self.__numupdates, 'files were updated by timestamp.'
+            print(self.__numupdates, 'files were updated by timestamp.')
 
         # Failure stats
-        print '\n'
+        print('\n')
         if self.__numcopyfld:
-            print self.__numcopyfld, 'files could not be copied.'
+            print(self.__numcopyfld, 'files could not be copied.')
         if self.__numdirsfld:
-            print self.__numdirsfld, 'directories could not be created.'
+            print(self.__numdirsfld, 'directories could not be created.')
         if self.__numupdsfld:
-            print self.__numupdsfld, 'files could not be updated.'
+            print(self.__numupdsfld, 'files could not be updated.')
         if self.__numdeldfld:
-            print self.__numdeldfld, 'directories could not be purged.'
+            print(self.__numdeldfld, 'directories could not be purged.')
         if self.__numdelffld:
-            print self.__numdelffld, 'files could not be purged.'
+            print(self.__numdelffld, 'files could not be purged.')
         
 if __name__=="__main__":
     import sys
